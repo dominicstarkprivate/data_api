@@ -5,21 +5,22 @@ from data_api.database import Base
 import sqlalchemy.sql as sql
 
 
-class TextsTable(Base):  # type: ignore
+class Text(Base):  # type: ignore
     """DB table that contains the texts from the customer support interactions.
     """
-    __tablename__ = "texts_table"
-    id = sqlal.Column("text_id", sqlal.Integer, primary_key=True)
+    __tablename__ = "text"
+    id = sqlal.Column("id", sqlal.Integer, primary_key=True)
     text = sqlal.Column(sqlal.String(100))
     language = sqlal.Column(sqlal.String(100))
-    customer_id = sqlal.Column(sqlal.String(100))
-    dialog_id = sqlal.Column(sqlal.String(100))
+    customer_id = sqlal.Column(sqlal.Integer, nullable=False)
+    dialog_id = sqlal.Column(sqlal.Integer, nullable=False)
     creation_date = sqlal.Column(
         sqlal.DateTime(timezone=True), server_default=sql.func.now())
+    consent = sqlal.Column(sqlal.Boolean, default=False)
 
     def __init__(
-            self, text: str, language: str, customer_id: str,
-            dialog_id: str) -> None:
+            self, text: str, language: str, customer_id: int,
+            dialog_id: int) -> None:
         """Constructor of the TextsTable class. Initializes all the attributes.
         """
         self.text = text

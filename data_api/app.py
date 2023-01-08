@@ -9,8 +9,9 @@ def create_app():
     app.config["SQLALCHEMY_DATABASE_URI"] = \
         f"sqlite:///{constants.DB_FILENAME}"
     api = flask_restful.Api(app)
-    api.add_resource(resources.Data, "/data")
-    api.add_resource(resources.Consent, "/consent")
+    api.add_resource(
+        resources.Data, "/data", "/data/<customer_id>/<dialog_id>")
+    api.add_resource(resources.Consent, "/consents/<dialog_id>")
     return app
 
 
