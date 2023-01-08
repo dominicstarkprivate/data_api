@@ -3,6 +3,8 @@ from data_api import constants
 from data_api import resources
 from data_api import rest_api
 
+app = flask.Flask(__name__)
+
 
 def create_app() -> flask.Flask:
     """Create and return the flask app.
@@ -10,7 +12,6 @@ def create_app() -> flask.Flask:
     Returns:
         flask.Flask: The created flask app.
     """
-    app = flask.Flask(__name__)
     app.config["SQLALCHEMY_DATABASE_URI"] = \
         f"sqlite:///{constants.DB_FILENAME}"
     api = rest_api.RestAPI(app)

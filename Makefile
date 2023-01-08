@@ -9,3 +9,7 @@ reset_db:
 .PHONY: run
 run:
 	python -m data_api.app
+
+.PHONY: unit_tests
+unit_tests:
+	python -m unittest discover -p 'test*.py'

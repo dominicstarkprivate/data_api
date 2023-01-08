@@ -22,12 +22,16 @@ class Text(Base):  # type: ignore
             self, text: str, language: str, customer_id: str,
             dialog_id: str) -> None:
         """Constructor of the TextsTable class. Initializes all the attributes.
+
+        Args:
+            text (str): Text content.
+            language (str): Language identifier (as given by the user of the
+                API).
+            customer_id (str): Customer id.
+            dialog_id (str): Dialog id.
         """
         self.text = text
         self.language = language
         self.customer_id = customer_id
         self.dialog_id = dialog_id
         return None
-
-    def __repr__(self):
-        return f"<text: {self.text!r}>"
