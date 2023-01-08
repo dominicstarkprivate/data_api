@@ -32,9 +32,12 @@ class Data(flask_restful.Resource):
     def get(self) -> flask.Response:
         """GET request at /data to receive customer texts.
         """
-        texts = db_models.TextsTable.query.all()
+        texts = db_models.TextsTable.query.filter_by(
+            **flask.request.args.to_dict()).order_by(
+                db_models.TextsTable.creation_date.desc()).all()
         texts_json = [
-            {"id": text.id, "text": text.text, "language": text.language}
+            {"id": text.id, "text": text.text, "language": text.language,
+             "creation_date": text.creation_date}
             for text in texts
         ]
         return flask.make_response(

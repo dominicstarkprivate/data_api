@@ -2,17 +2,20 @@
 """
 import sqlalchemy as sqlal
 from data_api.database import Base
+import sqlalchemy.sql as sql
 
 
 class TextsTable(Base):  # type: ignore
     """DB table that contains the texts from the customer support interactions.
     """
-    __tablename__ = 'texts_table'
+    __tablename__ = "texts_table"
     id = sqlal.Column("text_id", sqlal.Integer, primary_key=True)
     text = sqlal.Column(sqlal.String(100))
     language = sqlal.Column(sqlal.String(100))
     customer_id = sqlal.Column(sqlal.String(100))
     dialog_id = sqlal.Column(sqlal.String(100))
+    creation_date = sqlal.Column(
+        sqlal.DateTime(timezone=True), server_default=sql.func.now())
 
     def __init__(
             self, text: str, language: str, customer_id: str,
@@ -26,4 +29,4 @@ class TextsTable(Base):  # type: ignore
         return None
 
     def __repr__(self):
-        return f"<Text {self.text!r}>"
+        return f"<text: {self.text!r}>"
