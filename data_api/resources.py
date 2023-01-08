@@ -2,44 +2,78 @@ import flask
 import flask_restful
 from data_api import database
 from data_api import db_models
+import marshmallow
+from typing import Tuple
+from data_api import errors
+from data_api import helpers
+
+
+class DataSchema(marshmallow.Schema):
+    """Marshmallow schema for the POST request body of the /data entpoint.
+    """
+    text = marshmallow.fields.Str(required=True, allow_none=False)
+    language = marshmallow.fields.Str(required=True, allow_none=False)
+
+
+class ConsentSchema(marshmallow.Schema):
+    """Marshmallow schema for the POST request body of the /consents endpoint.
+    """
+    consent = marshmallow.fields.Bool(required=True, allow_none=False)
 
 
 class Data(flask_restful.Resource):
     """Data endpoint, where data can be submitted to.
     """
 
-    def post(self, customer_id: int, dialog_id: int) -> flask.Response:
+    def _parse_post_body(self) -> Tuple[str, str]:
+        """Parse the request body of the post request and return the result.
+
+        Returns:
+            Tuple[str, str]: Returns the text and the language in the following
+                order: (text, language).
+        """
+        if (flask.request.headers.get("Content-Type") != "application/json"):
+            raise errors.ContentTypeNotJsonError(
+                "Content type not supported. Must be 'application/json'.")
+
+        request_json = flask.request.json or {}
+        schema = DataSchema()
+        _ = schema.load(request_json)
+        return request_json["text"], request_json["language"]
+
+    def post(self, customer_id: str, dialog_id: str) -> flask.Response:
         """Post request at /data/<customer_id>/<dialog_id> to save a new
         customer text in the db.
+
+        Args:
+            customer_id (str): Customer id.
+            dialog_id (str): Dialog id.
+
+        Returns:
+            flask.Response: Flask response object.
         """
-        customer_id = int(customer_id)
-        dialog_id = int(dialog_id)
-        content_type = flask.request.headers.get("Content-Type")
-        if (content_type != "application/json"):
-            raise ValueError(
-                "Content type not supported. Must be 'application/json'.")
-        data_item = flask.request.json
-        if data_item is None:
-            raise ValueError("Request body cannot be empty.")
-        text = data_item["text"]
-        language = data_item["language"]
+        text, language = self._parse_post_body()
         dialogs_from_different_customers = db_models.Text.query.filter_by(
             dialog_id=dialog_id).filter(
                 db_models.Text.customer_id != customer_id).first()
         if dialogs_from_different_customers is not None:
-            raise ValueError(
-                f"Dialog with id '{dialog_id}' exists already for another "
-                "customer. Each dialog is assigned to exactly one "
+            raise errors.DialogCustomerRelationError(
+                f"Dialog with id '{dialog_id}' exists already for "
+                "another customer. Each dialog is assigned to exactly one "
                 "customer.")
         text_db_entry = db_models.Text(
             text, language, customer_id, dialog_id)
         database.db_session.add(text_db_entry)
         database.db_session.commit()
-        return flask.make_response(
-            {"message": "Success.", "data": {"id": text_db_entry.id}}, 200)
+        return helpers.make_response(200)
 
     def get(self) -> flask.Response:
-        """GET request at /data to receive customer texts.
+        """GET request at /data to receive customer texts. Query parameters
+        are passed to the SQLAlchemy query.
+
+        Returns:
+            flask.Response: Flask response object. Contains the list of data
+                items that the query returned.
         """
         texts = db_models.Text.query.filter_by(consent=True).filter_by(
             **flask.request.args.to_dict()).order_by(
@@ -50,28 +84,48 @@ class Data(flask_restful.Resource):
              "customer_id": text.customer_id, "dialog_id": text.dialog_id}
             for text in texts
         ]
-        return flask.make_response(
-            {"message": "Success.", "data": {"texts": texts_json}}, 200)
+        return helpers.make_response(200, data={"texts": texts_json})
 
 
 class Consent(flask_restful.Resource):
     """Consent endpoint to give consent for usage for analytics purposes.
     """
 
-    def post(self, dialog_id: int) -> flask.Response:
+    def _parse_post_body(self) -> bool:
+        """Parse the request body of the post request and return the result.
+
+        Returns:
+            bool: Returns the consent flag.
         """
+        if (flask.request.headers.get("Content-Type") != "application/json"):
+            raise errors.ContentTypeNotJsonError(
+                "Content type not supported. Must be 'application/json'.")
+
+        request_json = flask.request.json or {}
+        schema = ConsentSchema()
+        _ = schema.load(request_json)
+        return request_json["consent"]
+
+    def post(self, dialog_id: str) -> flask.Response:
+        """Post request at /constents/<dialog_id>. If the request payload is
+        {'consent': True}, all data entries with the given dialog id are
+        updated with consent=True, otherwise, they are deleted.
+
+        Args:
+            dialog_id (str): Dialog id of texts that should be updated or
+                deleted.
+
+        Returns:
+            flask.Response: Flask response object.
         """
-        dialog_id = int(dialog_id)
-        payload = flask.request.json
-        if payload is None:
-            raise ValueError("Request body cannot be empty.")
-        consent = payload.get("consent", False)
+        consent = self._parse_post_body()
+        dialogs = db_models.Text.query.filter_by(dialog_id=dialog_id)
+        if dialogs.first() is None:
+            raise errors.DialogNotFoundError(
+                f"Dialog with id '{dialog_id}' does not exist.")
         if consent:
-            db_models.Text.query.filter_by(dialog_id=dialog_id).update(
-                dict(consent=True))
+            dialogs.update(dict(consent=True))
         else:
-            db_models.Text.query.filter_by(
-                dialog_id=dialog_id).delete()
+            dialogs.delete()
         database.db_session.commit()
-        return flask.make_response(
-            {"message": "Success.", "data": {}}, 200)
+        return helpers.make_response(200)

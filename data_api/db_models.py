@@ -12,15 +12,15 @@ class Text(Base):  # type: ignore
     id = sqlal.Column("id", sqlal.Integer, primary_key=True)
     text = sqlal.Column(sqlal.String(100))
     language = sqlal.Column(sqlal.String(100))
-    customer_id = sqlal.Column(sqlal.Integer, nullable=False)
-    dialog_id = sqlal.Column(sqlal.Integer, nullable=False)
+    customer_id = sqlal.Column(sqlal.String(100), nullable=False)
+    dialog_id = sqlal.Column(sqlal.String(100), nullable=False)
     creation_date = sqlal.Column(
         sqlal.DateTime(timezone=True), server_default=sql.func.now())
     consent = sqlal.Column(sqlal.Boolean, default=False)
 
     def __init__(
-            self, text: str, language: str, customer_id: int,
-            dialog_id: int) -> None:
+            self, text: str, language: str, customer_id: str,
+            dialog_id: str) -> None:
         """Constructor of the TextsTable class. Initializes all the attributes.
         """
         self.text = text

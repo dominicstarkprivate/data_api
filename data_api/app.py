@@ -1,14 +1,19 @@
 import flask
 from data_api import constants
-import flask_restful
 from data_api import resources
+from data_api import rest_api
 
 
-def create_app():
+def create_app() -> flask.Flask:
+    """Create and return the flask app.
+
+    Returns:
+        flask.Flask: The created flask app.
+    """
     app = flask.Flask(__name__)
     app.config["SQLALCHEMY_DATABASE_URI"] = \
         f"sqlite:///{constants.DB_FILENAME}"
-    api = flask_restful.Api(app)
+    api = rest_api.RestAPI(app)
     api.add_resource(
         resources.Data, "/data", "/data/<customer_id>/<dialog_id>")
     api.add_resource(resources.Consent, "/consents/<dialog_id>")
