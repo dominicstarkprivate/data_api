@@ -4,7 +4,7 @@ install:
 
 .PHONY: reset_db
 reset_db:
-	python ./tools/reset_db.py
+	python -m data_api.reset_db
 
 .PHONY: run
 run:
