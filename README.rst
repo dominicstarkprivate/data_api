@@ -21,3 +21,8 @@ For manual testing, make sure you have a clean db (`make reset_db` and a running
 - POST at `http://127.0.0.1:5000/consents/<dialog_id>` with a json request body, e.g. ``{"consent": true}``
 - GET at `http://127.0.0.1:5000/data`. This one also supports query parameters, e.g. `http://127.0.0.1:5000/data?language=EN&text=my_text`
 
+
+Deployment
+____________
+
+To deploy the API on an adress different from the localhost, you need to change the constant ``BACKEND_HOST`` in ``data_api/data_api/constants.py``. You can then follow the steps described in the Installation section.
