@@ -17,7 +17,7 @@ To run the unittests, use ``make unit_tests``.
 
 For manual testing, make sure you have a clean db (`make reset_db` and a running server ``make run``). Then you can use any tool (e.g. Postman, curl, python script, ...) to make requests to any of the following endpoints:
 
-- POST at`http://127.0.0.1:5000/data/<customer_id>/<dialog_id>` with a json request body, e.g. ``{"text": "my text", "language": "EN"}``
+- POST at`http://127.0.0.1:5000/data/<customer_id>/<dialog_id>` with a json request body, e.g. ``{"text": "my_text", "language": "EN"}``
 - POST at `http://127.0.0.1:5000/consents/<dialog_id>` with a json request body, e.g. ``{"consent": true}``
-- GET at `http://127.0.0.1:5000/data`. This one also supports query parameters, e.g. `http://127.0.0.1:5000/data?language=EN&text=my text`
+- GET at `http://127.0.0.1:5000/data`. This one also supports query parameters, e.g. `http://127.0.0.1:5000/data?language=EN&text=my_text`
 
